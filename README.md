@@ -2,10 +2,9 @@
 Oriental is a python "object graph mapper" for OrientDB.
 
 **This project is still in early stages of development. Currently it can connect and load from the database*, but nothing more. There is a ton of work left to do.**
+*[The database it has been developed against has lightweight-edges, so regular edges with their own document model may not load work. The current workflow for defining models for vertex records doesn't allow for edges at the moment either.]*
 
-** The database it has been developed against has lightweight-edges, so regular edges with their own document model may not load work. The current workflow for defining models for vertex records doesn't allow for edges at the moment either.*
-
-**Additionally, this is my first python project besides simple web apps, so some things may be poorly conceived, and other things may be just plain wrong due to my ignorance of systems like threading. **
+**Additionally, this is my first python project besides simple web apps, so some things may be poorly conceived, and other things may be just plain wrong due to my ignorance of systems like threading.**
 
 ## What is oriental? ##
 It is my take on an object graph mapper. Like all want-to-be ORM's, I have made the API and functionality as close to SQLAlchemy as I could based upon my limited understanding and usage of SQLAlchemy. However, oriental is currently more aligned with the 'SQLAlchemy Expression Language' than its ORM component.
@@ -75,7 +74,7 @@ And that’s it, we have solved the 1+n problem and reduced the database queries
 
 ### Advanced explanation ###
 
-You might be wondering how oriental achieved this? It does so by taking the query written in the Subquery attribute, and wrapping it in a combination of select, traverse and let clauses. In case you are interested, below are the 2 queries that oriental produced (presume that the rats rid is #12:0). (**That's a lie, the queries have changed slightly since I drafted this, but functionally they are similar.**) If you look carefully, you can see how the subqueries defined on the class have been integrated into the queries.
+You might be wondering how oriental achieved this? It does so by taking the query written in the Subquery attribute, and wrapping it in a combination of select, traverse and let clauses. In case you are interested, below are the 2 queries that oriental produced (presume that the rats rid is #12:0). *[That's a lie, the queries have changed slightly since I drafted this, but functionally they are similar.]* If you look carefully, you can see how the subqueries defined on the class have been integrated into the queries.
 
     TRAVERSE *, eats FROM (
         SELECT *, $eats as eats FROM #12:0 LET $eats = (select expand(out(Eats)) from $current) ) WHILE $depth <= 1
@@ -142,7 +141,7 @@ Subqueries can also be set to 'prefetch' another document type (which compliment
 
 Note: If we look back at the 'Rat Eats Food + Friends Eat Food' example shown previously, if `eager = True` were set as part of the `similar_animals = Subquery()` attribute, only 1 database query would have taken place to get all of the models required!
 
-Just a heads up, the attribute objects are accessible from both the document class, and document objects/instances once they are created, which should allow for some introspection (or something*).
+Just a heads up, the attribute objects are accessible from both the document class, and document objects/instances once they are created, which should allow for some introspection (or something) *[this is one of those times where I don't know if this was a feature worth implementing, but I did anyway.]*.
 
     > Animal.eats.query
     "select expand(out(Eats)) from {0}"
@@ -150,13 +149,12 @@ Just a heads up, the attribute objects are accessible from both the document cla
     > an_animal = db.get('Animal', 0)
     > an_animal.eats.query
     "select expand(out(Eats)) from {0}"
-**This is one of those times where I don't know if this was a feature worth implementing, but I did anyway.*
 
 ### Engine ###
 
 When finished, should work much like the SQLAlchemy Engine, and handle connection pooling and things like that.
 
-The Engine can be created with or without a Schema *(again, might be one of those bad design ideas)*.
+The Engine can be created with or without a Schema *[again, might be one of those bad design ideas]*.
 
 The Engine was designed with web apps in mind, so can be easily included in things like Pyramid (much like SQLAlchemy). Here we will create one during Pyramid config, and with the schema we created earlier.
 
@@ -165,7 +163,7 @@ The Engine was designed with web apps in mind, so can be easily included in thin
     def includeme(config):
         engine = Engine.from_config(config.registry.settings, prefix="oriental.", schema=schema)
 
-Further to this, the oriental db engine could then be added to the Pyramid request object, and with the right pooling, effectively have sessions and be thread safe (*but none of this properly implemented yet*). The previous code could be replaced with the following.
+Further to this, the oriental db engine could then be added to the Pyramid request object, and with the right pooling, effectively have sessions and be thread safe *[but none of this properly implemented yet]*. The previous code could be replaced with the following.
 
     def get_db_session(request):
         engine = request.registry.familytree_db_engine
@@ -213,5 +211,7 @@ Here is a simple (and rather pointless) example.
 
 ## Where to next for oriental? ##
 I think when oriental is finished, it would provide the powerful foundation required for a full fledged OGM. Probably, it could provide the foundation for pyorient.OGM in much the same way that 'SQLAlchemy Expression Language' is for the SQLAlchemy ORM.
+
+I've also allowed for and kept as close to the OrientDB document 'model', the properties they allow, and the various options for those items. Thus, it should be possible for oriental to generate the 'sql' necessary to actually create the database, which opens up possibilites for creating a database migration/management tool.
 
 However, I was building oriental to use in a project, but I have recently decided to no longer use OrientDB in that project. And thus, I haven't touched this code for a good 6 months, and don't plan to in the immediate future. So hopefully someone else will take it on and finish my work.
